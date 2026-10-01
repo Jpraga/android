@@ -44,7 +44,7 @@ while true; do
 
     # 5. Redimensiona e comprime para garantir tamanho entre 150KB - 300KB
     if [ -f "$FOTO_TEMP" ]; then
-        convert "$FOTO_TEMP" -resize "${LARGURA_FOTO}x" -quality "$QUALIDADE_FOTO" "$FOTO_FINAL"
+        magick "$FOTO_TEMP" -resize "${LARGURA_FOTO}x" -quality "$QUALIDADE_FOTO" "$FOTO_FINAL"
         rm "$FOTO_TEMP"
         
         TAMANHO=$(du -h "$FOTO_FINAL" | cut -f1)
