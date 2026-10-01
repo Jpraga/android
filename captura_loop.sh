@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configurações
-PASTA_FOTOS="$HOME/fotos"
+PASTA_FOTOS="/sdcard/Pictures/fotos"
 LIMITE_DISCO=80
 INTERVALO_SEGUNDOS=5 # Intervalo entre fotos (ajusta conforme necessário)
 LARGURA_FOTO=1280    # Reduz a resolução para manter o tamanho do ficheiro reduzido
