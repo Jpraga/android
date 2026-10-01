@@ -24,7 +24,7 @@ echo "[+] A atualizar a lista de pacotes..."
 pkg update -y
 
 echo "[+] A instalar pacotes e dependências..."
-pkg install openssh wget net-tools termux-api python python-pip python-onnxruntime clang make screen dbus -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+pkg install termux-api imagemagick openssh wget net-tools termux-api python python-pip python-onnxruntime clang make screen dbus -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
 echo "[+] A configurar a palavra-passe do utilizador..."
 echo -e "${PASSWORD}\n${PASSWORD}" | passwd
