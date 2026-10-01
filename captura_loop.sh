@@ -2,10 +2,10 @@
 
 # Configurações
 PASTA_FOTOS="/sdcard/Pictures/fotos"
-LIMITE_DISCO=80
-INTERVALO_SEGUNDOS=5 # Intervalo entre fotos (ajusta conforme necessário)
-LARGURA_FOTO=1280    # Reduz a resolução para manter o tamanho do ficheiro reduzido
-QUALIDADE_FOTO=75    # Qualidade JPEG (75% gera ficheiros à volta de 150KB-300KB)
+LIMITE_DISCO=39
+INTERVALO_SEGUNDOS=5
+LARGURA_FOTO=1280
+QUALIDADE_FOTO=75
 
 # Cria a pasta de fotos se não existir
 mkdir -p "$PASTA_FOTOS"
@@ -16,8 +16,8 @@ echo "Limite de armazenamento: ${LIMITE_DISCO}%"
 echo "Pressiona [CTRL+C] para parar."
 
 while true; do
-    # 1. Verifica a percentagem de espaço ocupado no armazenamento do Termux/dispositivo
-    USO_DISCO=$(df "$HOME" | awk 'NR==2 {print $5}' | sed 's/%//')
+    # 1. Verifica a percentagem de espaço ocupado
+    USO_DISCO=$(df "$PASTA_FOTOS" | awk 'NR==2 {print $(NF-1)}' | sed 's/%//')
 
     # 2. Se o uso do disco for igual ou superior ao limite, apaga a foto mais antiga
     while [ "$USO_DISCO" -ge "$LIMITE_DISCO" ]; do
@@ -25,9 +25,15 @@ while true; do
         
         if [ -n "$FOTO_ANTIGA" ]; then
             echo "[ALERTA] Espaço em disco em ${USO_DISCO}%. A apagar mais antiga: $(basename "$FOTO_ANTIGA")"
+            
+            # Remove do disco físico
             rm "$FOTO_ANTIGA"
-            # Reavalia o espaço em disco após eliminar
-            USO_DISCO=$(df "$HOME" | awk 'NR==2 {print $5}' | sed 's/%//')
+            
+            # Notifica a Galeria do Android para remover a foto apagada da visualização
+            termux-media-scan "$FOTO_ANTIGA" >/dev/null 2>&1
+            
+            # Reavalia o espaço em disco
+            USO_DISCO=$(df "$PASTA_FOTOS" | awk 'NR==2 {print $(NF-1)}' | sed 's/%//')
         else
             echo "[AVISO] Limite de disco atingido, mas não há fotos para apagar em $PASTA_FOTOS."
             break
@@ -39,20 +45,22 @@ while true; do
     FOTO_TEMP="$PASTA_FOTOS/temp_${TIMESTAMP}.jpg"
     FOTO_FINAL="$PASTA_FOTOS/${TIMESTAMP}.jpg"
 
-    # 4. Tira a foto usando a câmara traseira (id 0)
+    # 4. Tira a foto usando a câmara traseira
     termux-camera-photo -c 0 "$FOTO_TEMP"
 
-   # 5. Redimensiona e comprime usando o comando "magick"
+    # 5. Redimensiona e comprime
     if [ -f "$FOTO_TEMP" ]; then
         magick "$FOTO_TEMP" -resize "${LARGURA_FOTO}x" -quality "$QUALIDADE_FOTO" "$FOTO_FINAL"
         rm "$FOTO_TEMP"
         
-        # Indexa a nova foto na Galeria do Android
-        termux-media-scan "$FOTO_FINAL"
+        # Indexa a nova foto na Galeria
+        termux-media-scan "$FOTO_FINAL" >/dev/null 2>&1
         
-        TAMANHO=$(du -h "$FOTO_FINAL" | cut -f1)
-        echo "[OK] Foto guardada e indexada: ${TIMESTAMP}.jpg ($TAMANHO) | Disco: ${USO_DISCO}%"
+        TAMANHO=$(ls -lh "$FOTO_FINAL" | awk '{print $5}')
+        echo "[OK] Foto guardada: ${TIMESTAMP}.jpg ($TAMANHO) | Disco: ${USO_DISCO}%"
     else
         echo "[ERRO] Falha ao capturar foto pela câmara."
     fi
+
+    sleep "$INTERVALO_SEGUNDOS"
 done
