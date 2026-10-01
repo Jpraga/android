@@ -42,17 +42,17 @@ while true; do
     # 4. Tira a foto usando a câmara traseira (id 0)
     termux-camera-photo -c 0 "$FOTO_TEMP"
 
-    # 5. Redimensiona e comprime para garantir tamanho entre 150KB - 300KB
+   # 5. Redimensiona e comprime usando o comando "magick"
     if [ -f "$FOTO_TEMP" ]; then
         magick "$FOTO_TEMP" -resize "${LARGURA_FOTO}x" -quality "$QUALIDADE_FOTO" "$FOTO_FINAL"
         rm "$FOTO_TEMP"
         
+        # Indexa a nova foto na Galeria do Android
+        termux-media-scan "$FOTO_FINAL"
+        
         TAMANHO=$(du -h "$FOTO_FINAL" | cut -f1)
-        echo "[OK] Foto guardada: ${TIMESTAMP}.jpg ($TAMANHO) | Disco: ${USO_DISCO}%"
+        echo "[OK] Foto guardada e indexada: ${TIMESTAMP}.jpg ($TAMANHO) | Disco: ${USO_DISCO}%"
     else
         echo "[ERRO] Falha ao capturar foto pela câmara."
     fi
-
-    # Pausa antes da próxima captura
-    sleep "$INTERVALO_SEGUNDOS"
 done
